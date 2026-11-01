@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Patient records and clinical encounter dashboard">
+    <title>EHR - Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/css/Dashboard.css">
+</head>
+
+<body>
+
+    <div class="app">
+
+        <!-- ===== Sidebar ===== -->
+        <button class="sidebar-toggle" id="sidebarToggle"><i class="fa-solid fa-bars"></i></button>
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-top">
+                <div class="brand">
+                    <div class="brand-icon"><i class="fa-solid fa-notes-medical"></i></div>
+                    EHR
+                </div>
+                <button class="nav-item active" id="navDashboard">
+                    <i class="fa-solid fa-grip"></i> Dashboard
+                </button>
+            </div>
+            <div class="sidebar-bottom">
+                <button class="signout-btn" id="signOutBtn">
+                    <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <!-- ===== Main ===== -->
+        <main class="main">
+
+            <div class="searchbar">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="patientSearch" placeholder="Search by First Name, Last Name or MRN...">
+                <div id="searchResults" class="search-results"></div>
+            </div>
+
+            <div class="tabs-container">
+
+                <div class="tabs" id="tabsRow">
+                    <div class="content">
+                    <button class="tab-btn active" type="button" data-tab="demographics" aria-selected="true">
+                         DEMOGRAPHICS
+                    </button>
+
+                    <button class="tab-btn" type="button" data-tab="encounter" aria-selected="false">
+                        ENCOUNTER
+                    </button>
+
+                    <button class="tab-btn" type="button" data-tab="docs" aria-selected="false">
+                         DOCUMENTS
+                    </button>
+                    </div>
+                   <div class="searchbar" id="searchbar">
+                     <input  type="text" id="tableFilter" placeholder="Filter  list..." />
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ===== Patient Demographics Tab ===== -->
+            <section class="tab-panel active" id="panel-demographics">
+                <div class="section-header">
+                    <div>
+                        <div class="section-title">Patient Demographics</div>
+                        <div class="section-desc">Manage active patient health records and demographics.</div>
+                    </div>
+                    <button class="btn-primary" id="addPatientBtn"><i class="fa-solid fa-plus"></i> Add Patient</button>
+                </div>
+
+                <div class="table-card">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Patient ID</th>
+                                <th>Name</th>
+                                <th>SSN</th>
+                                <th>Gender</th>
+                                <th>Contact</th>
+                                <th>Blood Group</th>
+                                <th>Last Visit</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="patientTableBody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ===== Chief Complaint Tab ===== -->
+
+            <section class="tab-panel" id="panel-encounter">
+
+                <div class="section-header">
+                    <div>
+                        <div class="section-title">Encounter</div>
+                        <div class="section-desc">
+                            Clinical encounter details for selected patient.
+                        </div>
+                    </div>
+                </div>
+
+                <div id="encounterContext"></div>
+
+                <div class="panel">
+
+                    <div class="field-group">
+                        <h3>Chief Complaint *</h3>
+                        <textarea id="chiefInput"></textarea>
+                    </div>
+
+                    <div class="field-group">
+                        <h3>History of Present Illness (HPI) *</h3>
+                        <textarea id="hpiInput" class="form-textarea-lg"></textarea>
+                    </div>
+
+                    <h3 class="vitals-heading">
+                        Vital Signs *
+                    </h3>
+
+                    <div class="vitals-grid">
+
+                        <div class="field-group">
+                            <label>Blood Pressure *</label>
+                            <input id="v_bp">
+                        </div>
+
+                        <div class="field-group">
+                            <label>Heart Rate *</label>
+                            <input id="v_hr">
+                        </div>
+
+                        <div class="field-group">
+                            <label>Temperature *</label>
+                            <input id="v_temp">
+                        </div>
+
+                        <div class="field-group">
+                            <label>Respiratory Rate</label>
+                            <input id="v_rr">
+                        </div>
+
+                        <div class="field-group">
+                            <label>SpO2</label>
+                            <input id="v_spo2">
+                        </div>
+
+                        <div class="field-group">
+                            <label>Weight</label>
+                            <input id="v_weight">
+                        </div>
+
+                    </div>
+
+                    <div class="field-group">
+                        <h3>Past Medical History *</h3>
+                        <textarea id="pmhInput" class="form-textarea-lg"></textarea>
+                    </div>
+
+                    <div class="field-group">
+                        <h3>Plan of Care *</h3>
+                        <textarea id="planInput" class="form-textarea-lg"></textarea>
+                    </div>
+
+                    <div class="save-row">
+
+                        <button type="button" class="btn-secondary" id="encounterCancel">
+                            Cancel
+                        </button>
+
+                        <button type="button" class="btn-primary" id="encounterSave">
+                            Save Encounter
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- ===== Patient Documents Tab ===== -->
+            <section class="tab-panel" id="panel-docs">
+                <div class="section-header">
+                    <div>
+                        <div class="section-title">Patient Documents</div>
+                        <div class="section-desc">Previously uploaded records for the patient.</div>
+                    </div>
+                    <button class="btn-primary" id="attachDocBtn"><i class="fa-solid fa-paperclip"></i> Attach
+                        Document</button>
+                </div>
+                <div id="docsContext"></div>
+                <div class="doc-grid" id="docGrid"></div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- ===== Add Patient Modal ===== -->
+    <div class="modal-overlay" id="addPatientModal">
+        <div class="modal modal-xl">
+            <div class="modal-header">
+                <div class="modal-kicker"
+                     id="patientModalKicker">
+                    PATIENT REGISTRATION
+                </div>    
+            </div>
+
+            <div class="patient-tabs">               
+                <button type="button" class="patient-tab active" data-tab="personal"> Personal Information</button>
+                <button type="button" class="patient-tab" data-tab="contact">Contact</button>
+                <button type="button" class="patient-tab" data-tab="address">Address </button>
+                <button type="button" class="patient-tab" data-tab="admission">Admission </button>
+                <button type="button" class="patient-tab" data-tab="insurance">Insurance </button>
+                <button type="button" class="patient-tab" data-tab="dependents">Dependents </button>
+            </div>
+
+
+
+            <form id="addPatientForm" class="patient-form">
+                <div id="personal-panel" class="patient-panel active">
+                <div class="form-section">
+                    <div class="section-heading">
+                        <i class="fa-solid fa-user"></i>
+                        <span>Personal Information</span>
+                    </div>
+                    <div class="field-grid">
+                        <div class="field-group">
+                            <label for="MRN">MRN (Medical Record No.) *</label>
+                            <input id="MRN" type="text" placeholder="Enter MRN" required>
+                        </div>
+                        <div class="field-group">
+                            <label for="firstname">First Name *</label>
+                            <input id="firstname" type="text" placeholder="Enter first name" required>
+                        </div>
+                        <div class="field-group">
+                            <label for="lastname">Last Name *</label>
+                            <input id="lastname" type="text" placeholder="Enter last name" required>
+                        </div>
+                        <div class="field-group">
+                            <label for="dob">Date of Birth *</label>
+                            <input id="dob" type="date" required>
+                        </div>
+                        <div class="field-group">
+                            <label for="gender">Gender</label>
+                            <select id="gender">
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label for="SSN">SSN</label>
+                            <input id="SSN" type="text" placeholder="XXX-XX-XXXX">
+                        </div>
+                        <div class="field-group">
+                            <label for="bloodgroup">Blood Group</label>
+                            <select id="bloodgroup">
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label for="maritalstatus">Marital Status</label>
+                            <select id="maritalstatus">
+                                <option value="Married">Married</option>
+                                <option value="Single">Single</option>
+                                <option value="Widowed">Widowed</option>
+                                <option value="Divorced">Divorced</option>
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label for="nationality">Nationality</label>
+                            <input id="nationality" type="text" placeholder="Enter nationality">
+                        </div>
+                    </div>
+                </div>
+                </div>
+                <div id="contact-panel" class="patient-panel ">
+                <div class="form-section">
+                    <div class="section-heading">
+                        <i class="fa-solid fa-phone"></i>
+                        <span>Contact Information</span>
+                    </div>
+                    <div class="field-grid">
+                        <div class="field-group">
+                            <label for="phonenumber">Phone Number *</label>
+                            <input id="phonenumber" type="tel" placeholder="(555) 123-4567" required>
+                        </div>
+                        <div class="field-group">
+                            <label for="alternatenumber">Alternate Number</label>
+                            <input id="alternatenumber" type="tel" placeholder="(555) 987-6543">
+                        </div>
+                        <div class="field-group">
+                            <label for="email">Email *</label>
+                            <input id="email" type="email" autocomplete="email" placeholder="email@example.com" required>
+                        </div>
+                        <div class="field-group">
+                            <label for="emergencycontact">Emergency Contact Number</label>
+                            <input id="emergencycontact" type="tel" placeholder="(555) 111-2222">
+                        </div>
+                        <div class="field-group">
+                            <label for="emergencyrelationship">Relationship</label>
+                            <input id="emergencyrelationship" type="text" placeholder="Brother / Spouse / Parent">
+                        </div>
+                    </div>
+                </div>
+                </div>
+                <div id="address-panel" class="patient-panel ">
+                <div class="form-section">
+                    <div class="section-heading">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span>Address Information</span>
+                    </div>
+                    <div class="field-grid">
+                        <div class="field-group full-width">
+                            <label for="streetaddress">Street Address</label>
+                            <input id="streetaddress" type="text" placeholder="Enter street address">
+                        </div>
+                        <div class="field-group">
+                            <label for="City">City</label>
+                            <input id="City" type="text" placeholder="Enter city">
+                        </div>
+                        <div class="field-group">
+                            <label for="State">State</label>
+                            <input id="State" type="text" placeholder="Enter State">
+                        </div>
+                        <div class="field-group">
+                            <label for="Zipcode">Zip Code</label>
+                            <input id="Zipcode" type="text" placeholder="Enter zip code">
+                        </div>
+                    </div>
+                </div>
+                </div>
+                <div id="admission-panel" class="patient-panel ">
+                <div class="form-section">
+                    <div class="section-heading">
+                        <i class="fa-solid fa-hospital"></i>
+                        <span>Admission Information</span>
+                    </div>
+                    <div class="field-grid">
+                        <div class="field-group">
+                            <label for="admissiontype">Admission Type</label>
+                            <select id="admissiontype">
+                                <option value="OPD">OPD</option>
+                                <option value="IPD">IPD</option>
+                                <option value="Emergency">Emergency</option>
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label for="ward">Ward</label>
+                            <input id="ward" type="text" placeholder="Enter ward">
+                        </div>
+                        <div class="field-group">
+                            <label for="room">Room</label>
+                            <input id="room" type="text" placeholder="Enter room">
+                        </div>
+                        <div class="field-group">
+                            <label for="referringphysician">Referring Physician</label>
+                            <input id="referringphysician" type="text" placeholder="Enter physician name">
+                        </div>
+                    </div>
+                </div>
+                </div>
+                <div id="insurance-panel" class="patient-panel ">
+                <div class="form-section">
+                    <div class="section-heading">
+                        <i class="fa-solid fa-shield-heart"></i>
+                        <span>Insurance Information</span>
+                    </div>
+                    <div class="field-grid">
+                        <div class="field-group">
+                            <label for="insuranceprovider">Insurance Provider</label>
+                            <input id="insuranceprovider" type="text" placeholder="Enter provider">
+                        </div>
+                        <div class="field-group">
+                            <label for="policynumber">Policy Number</label>
+                            <input id="policynumber" type="text" placeholder="Enter policy number">
+                        </div>
+                        <div class="field-group">
+                            <label for="insurancetype">Insurance Type</label>
+                            <select id="insurancetype">
+                                <option value="Government">Government</option>
+                                <option value="Private">Private</option>
+                                <option value="Employer">Employer</option>
+                                <option value="Self-Pay">Self-Pay</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                </div>
+                <div id="dependents-panel" class="patient-panel">
+                <div class="form-section">
+                    <div class="section-heading">
+                        <i class="fa-solid fa-users"></i>
+                        <span>Dependents</span>
+                    </div>
+                    <div class="field-grid">
+                        <div class="field-group">
+                            <label for="dependentname1">Dependent Name</label>
+                            <input id="dependentname1" type="text" placeholder="Dependent 1 name">
+                        </div>
+                        <div class="field-group">
+                            <label for="dependentrelationship1">Relationship</label>
+                            <input id="dependentrelationship1" type="text" placeholder="Relationship 1">
+                        </div>
+                        <div class="field-group">
+                            <label for="dependentdob1">DOB</label>
+                            <input id="dependentdob1" type="date">
+                        </div>
+                        <div class="field-group">
+                            <label for="dependentname2">Dependent Name</label>
+                            <input id="dependentname2" type="text" placeholder="Dependent 2 name">
+                        </div>
+                        <div class="field-group">
+                            <label for="dependentrelationship2">Relationship</label>
+                            <input id="dependentrelationship2" type="text" placeholder="Relationship 2">
+                        </div>
+                        <div class="field-group">
+                            <label for="dependentdob2">DOB</label>
+                            <input id="dependentdob2" type="date">
+                        </div>
+                    </div>
+                </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" data-close="addPatientModal">Cancel</button>
+                    <button type="submit" class="btn-primary"><i class="fa-solid fa-user-plus"></i> Save Patient</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== Attach Document Modal ===== -->
+    <div class="modal-overlay" id="attachDocModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Attach Document</h3>
+                <button class="modal-close" data-close="attachDocModal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="attachDocForm">
+                <div class="field-group"><label>Document Name</label><input required id="doc_name"
+                        placeholder="e.g. Lab Report - CBC"></div>
+                <div class="field-group"><label>Document Type</label>
+                    <select id="doc_type" class="form-select">
+                        <option>Lab Report</option>
+                        <option>Prescription</option>
+                        <option>Imaging / Scan</option>
+                        <option>Discharge Summary</option>
+                        <option>Insurance</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+
+                <div class="field-group"><label>File</label><input type="file" id="doc_file"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" data-close="attachDocModal">Cancel</button>
+                    <button type="submit" class="btn-primary"><i class="fa-solid fa-paperclip"></i> Attach</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="toast" id="toast"></div>
+
+
+<script src="/js/Dashboard.js"></script>
+</body>
+</html>
