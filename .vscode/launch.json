@@ -1,0 +1,25 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "EHR: Run in browser",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build EHR for VS Code",
+      "program": "${workspaceFolder}\\Patient.EHR.Frontend\\bin\\Debug\\net8.0-vscode\\Patient.EHR.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}\\Patient.EHR.Frontend",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:5083"
+      },
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
+        "uriFormat": "%s/Account/Login"
+      }
+    }
+  ]
+}

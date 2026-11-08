@@ -3,7 +3,8 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign-Up</title>
-    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/style.css"
+          onerror="this.onerror=null;this.href='../../wwwroot/css/style.css'" />
    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
@@ -80,17 +81,19 @@
                         <label for="fullName">Full Name</label>
 
                         <div class="input-wrapper">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21a8 8 0 0 0-16 0" /><circle cx="12" cy="8" r="4" /></svg>
                             <input type="text"
                                    id="fullName"
                                    name="fullName"
-                                   placeholder="Enter your full name " required>
+                                   autocomplete="name"
+                                   placeholder="Enter your full name" required>
                         </div>
                     </div>
                     <div class="field-group">
-                        <label for="email">Enter your Email  </label>
+                        <label for="email">Enter your Gmail address</label>
                         <div class="input-wrapper">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>
-                            <input type="email" id="email" name="email" placeholder="abc@gmail.com" required>
+                            <input type="email" id="email" name="email" autocomplete="email" placeholder="abc@gmail.com" pattern="[^@]+@[Gg][Mm][Aa][Ii][Ll]\.[Cc][Oo][Mm]" title="Use a Gmail address ending in @gmail.com." required>
                         </div>
                     </div>
                     <div class="field-group">
@@ -107,7 +110,12 @@
                             <input type="password"
                                    id="password"
                                    name="password"
+                                   autocomplete="new-password"
                                    placeholder="••••••••" required>
+                            <button type="button" class="toggle-password" data-toggle-password="password"
+                                    aria-label="Show password" aria-pressed="false">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></svg>
+                            </button>
                         </div>
                         <label for="confirmPassword">Confirm Password</label>
 
@@ -121,16 +129,14 @@
                             <input type="password"
                                    id="confirmPassword"
                                    name="confirmPassword"
+                                   autocomplete="new-password"
                                    placeholder="••••••••" required>
-                            <div id="confirmPasswordError"
-                                 class="validation-error">
-                            </div>
-
-                            <button type="button"
-                                    class="toggle-password"
-                                    onclick="togglePassword()">
+                            <button type="button" class="toggle-password" data-toggle-password="confirmPassword"
+                                    aria-label="Show confirm password" aria-pressed="false">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></svg>
                             </button>
                         </div>
+                        <div id="confirmPasswordError" class="validation-error"></div>
                         <div id="passwordError" class="validation-error"></div>
                     </div>
                     <div class="form-meta">

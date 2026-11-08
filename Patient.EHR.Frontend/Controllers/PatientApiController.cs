@@ -180,6 +180,7 @@ namespace Patient.EHR.Controllers
                     document.DocumentName,
                     document.DocumentType,
                     document.FileName,
+                    document.ContentType,
                     document.UploadedDate
                 })
                 .ToListAsync(cancellationToken);
@@ -258,6 +259,103 @@ namespace Patient.EHR.Controllers
             return document is null
                 ? NotFound()
                 : File(document.FileContent, document.ContentType, document.FileName);
+        }
+
+        [HttpGet("document/{documentId:int}/view")]
+        public async Task<IActionResult> ViewDocument(
+            int documentId,
+            CancellationToken cancellationToken)
+        {
+            var document = await _db.PatientDocuments
+                .AsNoTracking()
+                .SingleOrDefaultAsync(item => item.DocumentId == documentId, cancellationToken);
+
+            if (document is null)
+            {
+                return NotFound();
+            }
+
+            if (!IsPreviewableContentType(document.ContentType))
+            {
+                return StatusCode(StatusCodes.Status415UnsupportedMediaType);
+            }
+
+            Response.Headers["X-Content-Type-Options"] = "nosniff";
+            Response.Headers["Content-Disposition"] = "inline";
+            return File(document.FileContent, document.ContentType);
+        }
+
+        [HttpPut("document/{documentId:int}")]
+        [RequestSizeLimit(21 * 1024 * 1024)]
+        public async Task<IActionResult> UpdateDocument(
+            int documentId,
+            [FromForm] string documentName,
+            [FromForm] string documentType,
+            [FromForm] IFormFile? file,
+            CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(documentName) ||
+                string.IsNullOrWhiteSpace(documentType))
+            {
+                return BadRequest(new { success = false, message = "Document name and type are required." });
+            }
+
+            if (documentName.Trim().Length > 200 ||
+                documentType.Trim().Length > 100)
+            {
+                return BadRequest(new { success = false, message = "Document details exceed the allowed length." });
+            }
+
+            if (file is not null &&
+                (file.Length == 0 ||
+                 file.Length > 20 * 1024 * 1024 ||
+                 Path.GetFileName(file.FileName).Length > 255 ||
+                 file.ContentType.Length > 150))
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = file.Length > 20 * 1024 * 1024
+                        ? "The maximum document size is 20 MB."
+                        : "The selected file is empty or its details exceed the allowed length."
+                });
+            }
+
+            var document = await _db.PatientDocuments
+                .SingleOrDefaultAsync(item => item.DocumentId == documentId, cancellationToken);
+
+            if (document is null)
+            {
+                return NotFound(new { success = false, message = "Document was not found." });
+            }
+
+            document.DocumentName = documentName.Trim();
+            document.DocumentType = documentType.Trim();
+
+            if (file is not null)
+            {
+                await using var memoryStream = new MemoryStream();
+                await file.CopyToAsync(memoryStream, cancellationToken);
+                document.FileName = Path.GetFileName(file.FileName);
+                document.ContentType = string.IsNullOrWhiteSpace(file.ContentType)
+                    ? "application/octet-stream"
+                    : file.ContentType;
+                document.FileContent = memoryStream.ToArray();
+                document.UploadedDate = DateTime.UtcNow;
+            }
+
+            await _db.SaveChangesAsync(cancellationToken);
+            return Ok(new { success = true });
+        }
+
+        private static bool IsPreviewableContentType(string contentType)
+        {
+            return contentType.ToLowerInvariant() is
+                "application/pdf" or
+                "image/jpeg" or
+                "image/png" or
+                "image/gif" or
+                "image/webp";
         }
 
         private static List<PatientDependent> ToDependents(

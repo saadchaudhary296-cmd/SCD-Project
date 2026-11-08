@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -20,13 +20,32 @@
             <div class="sidebar-top">
                 <div class="brand">
                     <div class="brand-icon"><i class="fa-solid fa-notes-medical"></i></div>
-                    EHR
+                    <div>
+                        <span>EHR</span>
+                        <small>Care workspace</small>
+                    </div>
                 </div>
-                <button class="nav-item active" id="navDashboard">
-                    <i class="fa-solid fa-grip"></i> Dashboard
-                </button>
+                <div class="nav-label">WORKSPACE</div>
+                <nav class="sidebar-nav" aria-label="Dashboard navigation">
+                    <button class="nav-item active" id="navDashboard" type="button">
+                        <i class="fa-solid fa-grip"></i> Overview
+                    </button>
+                    <button class="nav-item" id="navDemographics" type="button">
+                        <i class="fa-solid fa-users"></i> Demographics
+                    </button>
+                    <button class="nav-item" id="navEncounter" type="button">
+                        <i class="fa-solid fa-stethoscope"></i> Encounters
+                    </button>
+                    <button class="nav-item" id="navDocuments" type="button">
+                        <i class="fa-regular fa-folder-open"></i> Documents
+                    </button>
+                </nav>
             </div>
             <div class="sidebar-bottom">
+                <div class="sidebar-status">
+                    <span class="status-dot"></span>
+                    <span>Workspace ready</span>
+                </div>
                 <button class="signout-btn" id="signOutBtn">
                     <i class="fa-solid fa-right-from-bracket"></i> Sign Out
                 </button>
@@ -36,18 +55,40 @@
         <!-- ===== Main ===== -->
         <main class="main">
 
-            <div class="searchbar">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" id="patientSearch" placeholder="Search by First Name, Last Name or MRN...">
-                <div id="searchResults" class="search-results"></div>
+            <div class="topbar">
+                <div class="searchbar top-search">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="patientSearch" aria-label="Search patients"
+                           placeholder="Search patients by name or MRN...">
+                    <div id="searchResults" class="search-results"></div>
+                </div>
+                <div class="workspace-chip">
+                    <span class="workspace-avatar"><i class="fa-solid fa-heart-pulse"></i></span>
+                    <span><strong>Clinical workspace</strong><small>Patient records</small></span>
+                </div>
             </div>
+
+            <section class="dashboard-heading" aria-labelledby="dashboardTitle">
+                <div>
+                    <div class="eyebrow"><span></span> PATIENT CARE</div>
+                    <h1 id="dashboardTitle">Good to see you</h1>
+                    <p>Your patient records and care workspace, all in one place.</p>
+                </div>
+                <button class="btn-primary heading-action" id="addPatientBtn" type="button">
+                    <i class="fa-solid fa-plus"></i> Add Patient
+                </button>
+            </section>
 
             <div class="tabs-container">
 
                 <div class="tabs" id="tabsRow">
                     <div class="content">
-                    <button class="tab-btn active" type="button" data-tab="demographics" aria-selected="true">
-                         DEMOGRAPHICS
+                    <button class="tab-btn active" type="button" data-tab="overview" aria-selected="true">
+                        OVERVIEW
+                    </button>
+
+                    <button class="tab-btn" type="button" data-tab="demographics" aria-selected="false">
+                        DEMOGRAPHICS
                     </button>
 
                     <button class="tab-btn" type="button" data-tab="encounter" aria-selected="false">
@@ -58,21 +99,83 @@
                          DOCUMENTS
                     </button>
                     </div>
-                   <div class="searchbar" id="searchbar">
-                     <input  type="text" id="tableFilter" placeholder="Filter  list..." />
-                    </div>
                 </div>
 
             </div>
 
+            <section class="tab-panel active" id="panel-overview">
+                <section class="stats-row" aria-label="Patient overview">
+                    <article class="stat-card stat-card-primary">
+                        <div class="stat-topline"><span>Total patients</span><span class="stat-icon"><i class="fa-solid fa-users"></i></span></div>
+                        <div class="stat-value" id="totalPatients">0</div>
+                        <div class="stat-sub">Patient records on file</div>
+                    </article>
+                    <article class="stat-card">
+                        <div class="stat-topline"><span>Male patients</span><span class="stat-icon stat-icon-blue"><i class="fa-solid fa-mars"></i></span></div>
+                        <div class="stat-value" id="malePatients">0</div>
+                        <div class="stat-sub">Based on recorded gender</div>
+                    </article>
+                    <article class="stat-card">
+                        <div class="stat-topline"><span>Female patients</span><span class="stat-icon stat-icon-violet"><i class="fa-solid fa-venus"></i></span></div>
+                        <div class="stat-value" id="femalePatients">0</div>
+                        <div class="stat-sub">Based on recorded gender</div>
+                    </article>
+                    <article class="stat-card">
+                        <div class="stat-topline"><span>Other / unspecified</span><span class="stat-icon stat-icon-teal"><i class="fa-solid fa-user"></i></span></div>
+                        <div class="stat-value" id="otherPatients">0</div>
+                        <div class="stat-sub">Based on recorded gender</div>
+                    </article>
+                </section>
+
+                <section class="overview-grid" aria-label="Patient insights">
+                    <article class="overview-card patient-mix-card">
+                        <div class="overview-card-heading">
+                            <div>
+                                <h2>Patient overview</h2>
+                                <p>Patient mix by recorded gender</p>
+                            </div>
+                            <span class="overview-heading-icon"><i class="fa-solid fa-chart-pie"></i></span>
+                        </div>
+                        <div class="patient-mix-content">
+                            <div class="patient-donut" id="patientDonut" role="img" aria-label="Patient gender distribution">
+                                <div><strong id="donutTotal">0</strong><span>patients</span></div>
+                            </div>
+                            <div class="patient-legend" aria-live="polite">
+                                <div><span class="legend-dot legend-male"></span><span>Male</span><strong id="legendMale">0</strong></div>
+                                <div><span class="legend-dot legend-female"></span><span>Female</span><strong id="legendFemale">0</strong></div>
+                                <div><span class="legend-dot legend-other"></span><span>Other / unspecified</span><strong id="legendOther">0</strong></div>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="overview-card care-tip-card">
+                        <div class="care-tip-icon"><i class="fa-solid fa-hand-holding-medical"></i></div>
+                        <div class="care-tip-copy">
+                            <span class="care-tip-kicker">YOUR WORKSPACE</span>
+                            <h2>Care starts with a clear picture.</h2>
+                            <p>Select a patient record to review encounters and documents, or add a patient to get started.</p>
+                        </div>
+                        <button class="care-tip-link" id="openPatientsBtn" type="button">
+                            Browse patient records <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                        <div class="care-tip-decoration" aria-hidden="true"><i class="fa-solid fa-heart-pulse"></i></div>
+                    </article>
+                </section>
+            </section>
+
             <!-- ===== Patient Demographics Tab ===== -->
-            <section class="tab-panel active" id="panel-demographics">
+            <section class="tab-panel" id="panel-demographics">
                 <div class="section-header">
                     <div>
-                        <div class="section-title">Patient Demographics</div>
-                        <div class="section-desc">Manage active patient health records and demographics.</div>
+                        <div class="section-title">Patient records</div>
+                        <div class="section-desc">Manage patient profiles and demographic information.</div>
                     </div>
-                    <button class="btn-primary" id="addPatientBtn"><i class="fa-solid fa-plus"></i> Add Patient</button>
+                    <div class="record-tools">
+                        <div class="searchbar" id="searchbar">
+                            <i class="fa-solid fa-filter" aria-hidden="true"></i>
+                            <input type="text" id="tableFilter" placeholder="Filter records..." aria-label="Filter patient records">
+                        </div>
+                        <span class="record-count" id="recordCount">0 records</span>
+                    </div>
                 </div>
 
                 <div class="table-card">
@@ -192,7 +295,7 @@
                         <div class="section-title">Patient Documents</div>
                         <div class="section-desc">Previously uploaded records for the patient.</div>
                     </div>
-                    <button class="btn-primary" id="attachDocBtn"><i class="fa-solid fa-paperclip"></i> Attach
+                    <button class="btn-primary" id="attachDocBtn" type="button"><i class="fa-solid fa-paperclip"></i> Attach
                         Document</button>
                 </div>
                 <div id="docsContext"></div>
@@ -204,26 +307,27 @@
 
     <!-- ===== Add Patient Modal ===== -->
     <div class="modal-overlay" id="addPatientModal">
-        <div class="modal modal-xl">
+        <div class="modal modal-xl" role="dialog" aria-modal="true" aria-labelledby="patientModalTitle">
             <div class="modal-header">
-                <div class="modal-kicker"
-                     id="patientModalKicker">
-                    PATIENT REGISTRATION
-                </div>    
+                <div>
+                    <div class="modal-kicker" id="patientModalKicker">PATIENT REGISTRATION</div>
+                    <h2 id="patientModalTitle">New Patient Profile</h2>
+                </div>
+                <button class="modal-close" type="button" data-close="addPatientModal" aria-label="Close patient form">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
 
-            <div class="patient-tabs">               
-                <button type="button" class="patient-tab active" data-tab="personal"> Personal Information</button>
+            <div class="patient-tabs" aria-label="Patient information sections">
+                <button type="button" class="patient-tab active" data-tab="personal">Personal Information</button>
                 <button type="button" class="patient-tab" data-tab="contact">Contact</button>
-                <button type="button" class="patient-tab" data-tab="address">Address </button>
-                <button type="button" class="patient-tab" data-tab="admission">Admission </button>
-                <button type="button" class="patient-tab" data-tab="insurance">Insurance </button>
-                <button type="button" class="patient-tab" data-tab="dependents">Dependents </button>
+                <button type="button" class="patient-tab" data-tab="address">Address</button>
+                <button type="button" class="patient-tab" data-tab="admission">Admission</button>
+                <button type="button" class="patient-tab" data-tab="insurance">Insurance</button>
+                <button type="button" class="patient-tab" data-tab="dependents">Dependents</button>
             </div>
 
-
-
-            <form id="addPatientForm" class="patient-form">
+            <form id="addPatientForm" class="patient-form" novalidate>
                 <div id="personal-panel" class="patient-panel active">
                 <div class="form-section">
                     <div class="section-heading">
@@ -257,7 +361,9 @@
                         </div>
                         <div class="field-group">
                             <label for="SSN">SSN</label>
-                            <input id="SSN" type="text" placeholder="XXX-XX-XXXX">
+                            <input id="SSN" type="text" placeholder="XXX-XX-XXXX" maxlength="11"
+                                   pattern="(?:[0-9]{9}|[0-9]{3}-[0-9]{2}-[0-9]{4})"
+                                   title="Enter 9 digits, optionally formatted as XXX-XX-XXXX.">
                         </div>
                         <div class="field-group">
                             <label for="bloodgroup">Blood Group</label>
@@ -445,16 +551,21 @@
 
     <!-- ===== Attach Document Modal ===== -->
     <div class="modal-overlay" id="attachDocModal">
-        <div class="modal">
+        <div class="modal document-form-modal" role="dialog" aria-modal="true" aria-labelledby="attachDocTitle">
             <div class="modal-header">
-                <h3>Attach Document</h3>
-                <button class="modal-close" data-close="attachDocModal"><i class="fa-solid fa-xmark"></i></button>
+                <h3 id="attachDocTitle">Attach Document</h3>
+                <button class="modal-close" type="button" data-close="attachDocModal" aria-label="Close attachment form">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
             <form id="attachDocForm">
-                <div class="field-group"><label>Document Name</label><input required id="doc_name"
-                        placeholder="e.g. Lab Report - CBC"></div>
-                <div class="field-group"><label>Document Type</label>
-                    <select id="doc_type" class="form-select">
+                <div class="field-group">
+                    <label for="doc_name">Document Name</label>
+                    <input required id="doc_name" maxlength="200" placeholder="e.g. Lab Report - CBC">
+                </div>
+                <div class="field-group">
+                    <label for="doc_type">Document Type</label>
+                    <select id="doc_type" class="form-select" required>
                         <option>Lab Report</option>
                         <option>Prescription</option>
                         <option>Imaging / Scan</option>
@@ -464,12 +575,75 @@
                     </select>
                 </div>
 
-                <div class="field-group"><label>File</label><input type="file" id="doc_file"></div>
+                <div class="field-group">
+                    <label for="doc_file">File</label>
+                    <input type="file" id="doc_file" required>
+                    <small class="form-hint">Maximum file size: 20 MB.</small>
+                </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-secondary" data-close="attachDocModal">Cancel</button>
                     <button type="submit" class="btn-primary"><i class="fa-solid fa-paperclip"></i> Attach</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="editDocModal">
+        <div class="modal document-form-modal" role="dialog" aria-modal="true" aria-labelledby="editDocTitle">
+            <div class="modal-header">
+                <h3 id="editDocTitle">Edit Document</h3>
+                <button class="modal-close" type="button" data-close="editDocModal" aria-label="Close document editor">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <form id="editDocForm">
+                <div class="field-group">
+                    <label for="edit_doc_name">Document Name</label>
+                    <input required id="edit_doc_name" maxlength="200">
+                </div>
+                <div class="field-group">
+                    <label for="edit_doc_type">Document Type</label>
+                    <select id="edit_doc_type" class="form-select" required>
+                        <option>Lab Report</option>
+                        <option>Prescription</option>
+                        <option>Imaging / Scan</option>
+                        <option>Discharge Summary</option>
+                        <option>Insurance</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label for="edit_doc_file">Replace file (optional)</label>
+                    <input type="file" id="edit_doc_file">
+                    <small class="form-hint" id="editDocCurrentFile"></small>
+                    <small class="form-hint">Leave this empty to keep the current file. Maximum file size: 20 MB.</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" data-close="editDocModal">Cancel</button>
+                    <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="viewDocModal">
+        <div class="modal document-preview-modal" role="dialog" aria-modal="true" aria-labelledby="viewDocTitle">
+            <div class="modal-header">
+                <h3 id="viewDocTitle">Document Preview</h3>
+                <button class="modal-close" type="button" data-close="viewDocModal" aria-label="Close document preview">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="document-preview-content">
+                <iframe id="documentViewerFrame" title="Document preview" hidden></iframe>
+                <div id="documentPreviewUnavailable" class="document-preview-unavailable" hidden>
+                    Preview is not available for this file type. Download the file to open it.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a class="btn-primary" id="documentDownloadLink" href="#"><i class="fa-solid fa-download"></i> Download</a>
+                <button type="button" class="btn-secondary" data-close="viewDocModal">Close</button>
+            </div>
         </div>
     </div>
     

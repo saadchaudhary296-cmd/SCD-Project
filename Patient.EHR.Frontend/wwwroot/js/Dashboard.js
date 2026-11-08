@@ -2,7 +2,8 @@
 let patients = [];
 let clinical = {};
 let activePatientId = null;
-let currentTab = "demographics"; const API_BASE_URL = "/api/patient";
+let currentTab = "overview"; const API_BASE_URL = "/api/patient";
+let editingDocumentId = null;
 async function loadPatients() {
     try {
         console.log("Calling API:", `${API_BASE_URL}/all`);          
@@ -75,6 +76,44 @@ function escapeHtml(value) {
         "'": '&#39;'
     })[character]);
 }
+function renderDashboardSummary() {
+    const counts = { male: 0, female: 0, other: 0 };
+    patients.forEach(patient => {
+        const gender = String(patient.gender || '').trim().toLowerCase();
+        if (gender === 'male' || gender === 'm') {
+            counts.male++;
+        } else if (gender === 'female' || gender === 'f') {
+            counts.female++;
+        } else {
+            counts.other++;
+        }
+    });
+
+    const total = patients.length;
+    document.getElementById('totalPatients').textContent = total.toLocaleString();
+    document.getElementById('malePatients').textContent = counts.male.toLocaleString();
+    document.getElementById('femalePatients').textContent = counts.female.toLocaleString();
+    document.getElementById('otherPatients').textContent = counts.other.toLocaleString();
+    document.getElementById('donutTotal').textContent = total.toLocaleString();
+    document.getElementById('legendMale').textContent = counts.male.toLocaleString();
+    document.getElementById('legendFemale').textContent = counts.female.toLocaleString();
+    document.getElementById('legendOther').textContent = counts.other.toLocaleString();
+
+    const donut = document.getElementById('patientDonut');
+    if (total === 0) {
+        donut.style.background = '#e8eef6';
+        donut.setAttribute('aria-label', 'No patient records available');
+        return;
+    }
+
+    const maleEnd = counts.male / total * 100;
+    const femaleEnd = maleEnd + counts.female / total * 100;
+    donut.style.background = `conic-gradient(#4d9af6 0% ${maleEnd}%, #9b8cf5 ${maleEnd}% ${femaleEnd}%, #39c6b0 ${femaleEnd}% 100%)`;
+    donut.setAttribute(
+        'aria-label',
+        `Patient gender distribution: ${counts.male} male, ${counts.female} female, ${counts.other} other or unspecified`
+    );
+}
 function contextBar(containerId) {
     const p = getPatient(activePatientId);
     const el = document.getElementById(containerId);
@@ -94,12 +133,15 @@ function contextBar(containerId) {
 function renderPatients(filter = "") {
     const tbody = document.getElementById('patientTableBody');
     if (!tbody) return;
+    renderDashboardSummary();
     const f = (filter || "").toLowerCase();
     const rows = patients.filter(p =>!f ||
         (p.firstName || '').toLowerCase().includes(f) ||
         (p.lastName || '').toLowerCase().includes(f) ||
         (p.mrn || '').toLowerCase().includes(f)
     );
+    const recordCount = document.getElementById('recordCount');
+    recordCount.textContent = `${rows.length.toLocaleString()} ${rows.length === 1 ? 'record' : 'records'}`;
     console.log("Rendering Rows:", rows);
     if (rows.length === 0) {
         tbody.innerHTML = `
@@ -185,27 +227,51 @@ async function renderDocs() {
     grid.innerHTML =
         docs.map(d => `
             <div class="doc-card">
-
                 <div class="doc-icon">
                     <i class="fa-solid fa-file"></i>
                 </div>
-
-                <div>
+                <div class="doc-details">
                     <div class="doc-name">
                         ${escapeHtml(d.DocumentName)}
                     </div>
-
                     <div class="doc-meta">
-                        ${escapeHtml(d.DocumentType)}
+                        ${escapeHtml(d.DocumentType)} &middot;
+                        ${escapeHtml(d.FileName)}
+                    </div>
+                    <div class="doc-meta">
+                        Uploaded ${escapeHtml(new Date(d.UploadedDate).toLocaleDateString())}
                     </div>
                 </div>
-
+                <div class="doc-actions">
+                    <button class="btn-secondary" type="button" data-document-action="view"
+                            data-id="${d.DocumentId}" data-content-type="${escapeHtml(d.ContentType)}"
+                            data-file-name="${escapeHtml(d.FileName)}" data-name="${escapeHtml(d.DocumentName)}">
+                        <i class="fa-regular fa-eye"></i> View
+                    </button>
+                    <button class="btn-secondary" type="button" data-document-action="edit"
+                            data-id="${d.DocumentId}" data-type="${escapeHtml(d.DocumentType)}"
+                            data-file-name="${escapeHtml(d.FileName)}" data-name="${escapeHtml(d.DocumentName)}">
+                        <i class="fa-regular fa-pen-to-square"></i> Edit
+                    </button>
+                    <a class="btn-secondary" href="${API_BASE_URL}/document/${d.DocumentId}/download">
+                        <i class="fa-solid fa-download"></i> Download
+                    </a>
+                </div>
             </div>
         `).join('');
 }
 /* ============ TAB SWITCHING ============ */
 function showTab(tab) {
     currentTab = tab;
+    document.querySelectorAll('.sidebar-nav .nav-item').forEach(button => {
+        button.classList.toggle(
+            'active',
+            (tab === 'overview' && button.id === 'navDashboard') ||
+            (tab === 'demographics' && button.id === 'navDemographics') ||
+            (tab === 'encounter' && button.id === 'navEncounter') ||
+            (tab === 'docs' && button.id === 'navDocuments')
+        );
+    });
     document.querySelectorAll('.tab-btn').forEach(button => {
         const isActive = button.dataset.tab === tab;
         button.classList.toggle('active', isActive);
@@ -360,9 +426,13 @@ document.getElementById('patientTableBody').addEventListener('click', async e =>
 
 /* ============ MODAL MANAGEMENT ============ */
 function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id) .classList.remove('open');
+function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+    if (id === 'viewDocModal') {
+        document.getElementById('documentViewerFrame').src = 'about:blank';
+    }
     if (id === 'addPatientModal') {
-        document .querySelectorAll('.patient-row').forEach(r => r.classList.remove('active-row'));
+        document.querySelectorAll('.patient-row').forEach(r => r.classList.remove('active-row'));
     }
 }
 
@@ -458,6 +528,19 @@ function clearPatientForm() {
 document.getElementById('addPatientForm').addEventListener('submit', async function (e) {
     e.preventDefault();
 
+    const invalidField = [...this.querySelectorAll('input, select, textarea')]
+        .find(field => !field.checkValidity());
+    if (invalidField) {
+        const panel = invalidField.closest('.patient-panel');
+        const tab = panel
+            ? document.querySelector(`.patient-tab[data-tab="${panel.id.replace('-panel', '')}"]`)
+            : null;
+        tab?.click();
+        invalidField.focus();
+        invalidField.reportValidity();
+        return;
+    }
+
     const patient = {
         PatientId: window.editPatientId ? Number(window.editPatientId) : 0,
         MRN: document.getElementById('MRN').value,
@@ -543,7 +626,33 @@ document.getElementById('addPatientForm').addEventListener('submit', async funct
             e.target.reset();
         }
         else {
-            alert("Save Failed");
+            let errorMessage = `Request failed (HTTP ${response.status}).`;
+            if (response.status === 401) {
+                errorMessage = "Your session has expired. Please sign in again.";
+            } else if (response.status === 409) {
+                errorMessage = "A patient with this MRN already exists. Enter a unique MRN.";
+            } else if (response.status >= 500) {
+                errorMessage = "The server couldn't save this patient. Please try again; if it continues, check the application logs.";
+            } else {
+                const responseText = await response.text();
+                if (responseText) {
+                    try {
+                        const error = JSON.parse(responseText);
+                        const validationMessages = error.errors
+                            ? Object.values(error.errors).flat()
+                            : [];
+                        errorMessage = error.message ||
+                            error.detail ||
+                            validationMessages.join(" ") ||
+                            error.title ||
+                            errorMessage;
+                    } catch {
+                        errorMessage = responseText;
+                    }
+                }
+            }
+
+            alert(`Could not save patient: ${errorMessage}`);
         }
     }
     catch (err) {
@@ -811,11 +920,13 @@ document.getElementById('encounterCancel').addEventListener('click', () => {
     showTab('demographics');
 });
 
-/* ============ ATTACH DOCUMENT ============ */
+/* ============ ATTACH AND EDIT DOCUMENTS ============ */
 document.getElementById('attachDocForm')
     .addEventListener('submit', async function (e) {
         e.preventDefault();
 
+        const submitButton = this.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
         try {
 
             const name =
@@ -866,12 +977,9 @@ document.getElementById('attachDocForm')
 
             console.log("Status:", response.status);
 
-            const result =
-                await response.json();
+            const result = await response.json();
 
-            console.log(result);
-
-            if (result.success) {
+            if (response.ok && result.success) {
 
                 await renderDocs();
 
@@ -886,32 +994,129 @@ document.getElementById('attachDocForm')
                 this.reset();
             }
             else {
-
-                toast(
-                    result.message
-                );
+                toast(result.message || "Document upload failed.");
             }
         }
         catch (error) {
-
             console.error("UPLOAD ERROR:", error);
-
-            alert(error);
-
-            toast(
-                "Upload failed."
-            );
-        
+            toast("Upload failed. Please try again.");
+        }
+        finally {
+            submitButton.disabled = false;
         }
     });
+
+document.getElementById('docGrid').addEventListener('click', event => {
+    const button = event.target.closest('[data-document-action]');
+    if (!button) return;
+
+    const documentId = Number(button.dataset.id);
+    if (!Number.isInteger(documentId) || documentId <= 0) return;
+
+    if (button.dataset.documentAction === 'view') {
+        const previewableTypes = [
+            'application/pdf',
+            'image/jpeg',
+            'image/png',
+            'image/gif',
+            'image/webp'
+        ];
+        const contentType = (button.dataset.contentType || '').toLowerCase();
+        const frame = document.getElementById('documentViewerFrame');
+        const unavailable = document.getElementById('documentPreviewUnavailable');
+
+        document.getElementById('viewDocTitle').textContent =
+            button.dataset.name || 'Document Preview';
+        document.getElementById('documentDownloadLink').href =
+            `${API_BASE_URL}/document/${documentId}/download`;
+        frame.hidden = !previewableTypes.includes(contentType);
+        unavailable.hidden = frame.hidden === false;
+        frame.src = frame.hidden
+            ? 'about:blank'
+            : `${API_BASE_URL}/document/${documentId}/view`;
+        openModal('viewDocModal');
+        return;
+    }
+
+    if (button.dataset.documentAction === 'edit') {
+        editingDocumentId = documentId;
+        document.getElementById('editDocForm').reset();
+        document.getElementById('edit_doc_name').value = button.dataset.name || '';
+        const typeSelect = document.getElementById('edit_doc_type');
+        const selectedType = button.dataset.type || '';
+        typeSelect.value = [...typeSelect.options].some(option => option.value === selectedType)
+            ? selectedType
+            : 'Other';
+        document.getElementById('editDocCurrentFile').textContent =
+            `Current file: ${button.dataset.fileName || 'Unknown'}`;
+        openModal('editDocModal');
+    }
+});
+
+document.getElementById('editDocForm').addEventListener('submit', async function (event) {
+    event.preventDefault();
+    if (!editingDocumentId) {
+        toast("Select a document to edit.");
+        return;
+    }
+
+    const submitButton = this.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    try {
+        const formData = new FormData();
+        formData.append('documentName', document.getElementById('edit_doc_name').value);
+        formData.append('documentType', document.getElementById('edit_doc_type').value);
+        const file = document.getElementById('edit_doc_file').files[0];
+        if (file) formData.append('file', file);
+
+        const response = await fetch(
+            `${API_BASE_URL}/document/${editingDocumentId}`,
+            { method: 'PUT', body: formData }
+        );
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            toast(result.message || "Document could not be updated.");
+            return;
+        }
+
+        closeModal('editDocModal');
+        await renderDocs();
+        toast("Document updated successfully.");
+    }
+    catch (error) {
+        console.error("DOCUMENT UPDATE ERROR:", error);
+        toast("Document update failed. Please try again.");
+    }
+    finally {
+        submitButton.disabled = false;
+    }
+});
+
 document.getElementById('attachDocBtn')
     .addEventListener('click', () => {
         openModal('attachDocModal');
     });
 /* ============ SIDEBAR NAV / SIGN OUT ============ */
 document.getElementById('navDashboard').addEventListener('click', () => {
+    showTab('overview');
+    document.getElementById('sidebar').classList.remove('open');
+});
+document.getElementById('navDemographics').addEventListener('click', () => {
     showTab('demographics');
     document.getElementById('sidebar').classList.remove('open');
+});
+document.getElementById('navEncounter').addEventListener('click', () => {
+    showTab('encounter');
+    document.getElementById('sidebar').classList.remove('open');
+});
+document.getElementById('navDocuments').addEventListener('click', () => {
+    showTab('docs');
+    document.getElementById('sidebar').classList.remove('open');
+});
+document.getElementById('openPatientsBtn').addEventListener('click', () => {
+    showTab('demographics');
+    document.querySelector('#panel-demographics').scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 document.getElementById('signOutBtn').addEventListener('click', () => {
     if (confirm('Are you sure you want to sign out?')) {

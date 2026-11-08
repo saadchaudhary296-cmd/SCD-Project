@@ -24,6 +24,9 @@ namespace Patient.EHR.Models
         public string? Gender { get; set; }
 
         [StringLength(11)]
+        [RegularExpression(
+            @"^(?:[0-9]{9}|[0-9]{3}-[0-9]{2}-[0-9]{4})$",
+            ErrorMessage = "SSN must be 9 digits, optionally formatted as XXX-XX-XXXX.")]
         public string? SSN { get; set; }
 
         [StringLength(10)]

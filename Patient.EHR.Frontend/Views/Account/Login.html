@@ -3,7 +3,8 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title> EHR – Sign In</title>
-    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/style.css"
+          onerror="this.onerror=null;this.href='../../wwwroot/css/style.css'" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
@@ -66,7 +67,7 @@
 
                 <div class="login-header">
                     
-                    <h1>Sign In to EHR</h1>
+                    <h1>Sign in to EHR</h1>
                     <p>Access patient records securely using your registered email address and password.</p>
                  </div>
 
@@ -102,7 +103,7 @@
                             Don't have an account?
                             <a href="/Account/Signup">Sign up</a>
                         </p>
-                        <a href="#" class="forgot-link">Forgot password?</a>
+                        <a href="#" class="forgot-link" data-forgot-password>Forgot password?</a>
                     </div>
 
                     <div class="login-actions">
@@ -126,6 +127,18 @@
         </main>
 
     </div>      
+
+    <dialog class="password-reset-dialog" id="forgotPasswordDialog" aria-labelledby="forgotPasswordTitle">
+        <form class="password-reset-dialog-content" id="forgotPasswordForm">
+            <button type="button" class="password-reset-close" id="closeForgotPassword" aria-label="Close">&times;</button>
+            <h2 id="forgotPasswordTitle">Forgot your password?</h2>
+            <p>Enter the email address on your account and we'll send you a secure password reset link.</p>
+            <label for="resetEmail">Email address</label>
+            <input id="resetEmail" name="email" type="email" autocomplete="email" maxlength="254" required>
+            <div class="password-reset-message" id="forgotPasswordMessage" role="status" aria-live="polite"></div>
+            <button type="submit" class="btn-primary" id="sendResetLink">Send reset link</button>
+        </form>
+    </dialog>
 
     <script src="/js/Login.js"></script>
 

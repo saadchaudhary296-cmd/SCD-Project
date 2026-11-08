@@ -11,8 +11,46 @@
 
     const password = document.getElementById("password");
     const confirmPassword = document.getElementById("confirmPassword");
+    const email = document.getElementById("email");
+    const fullName = document.getElementById("fullName");
+
+    document.querySelectorAll("[data-toggle-password]").forEach((button) => {
+        button.addEventListener("click", () => {
+            const passwordField = document.getElementById(button.dataset.togglePassword);
+            if (!passwordField) {
+                return;
+            }
+
+            const isVisible = passwordField.type === "text";
+            passwordField.type = isVisible ? "password" : "text";
+            button.setAttribute("aria-pressed", String(!isVisible));
+            button.setAttribute(
+                "aria-label",
+                `${isVisible ? "Show" : "Hide"} ${button.dataset.togglePassword === "password" ? "password" : "confirm password"}`
+            );
+        });
+    });
 
     form.addEventListener("submit", function (e) {
+
+        const name = fullName.value.trim();
+        if (!/^[\p{L} ]+$/u.test(name)) {
+            fullName.setCustomValidity("Use letters and spaces only for your name.");
+            fullName.reportValidity();
+            fullName.setCustomValidity("");
+            e.preventDefault();
+            return;
+        }
+
+        if (!email.value.trim().toLowerCase().endsWith("@gmail.com")) {
+            email.setCustomValidity("Use a Gmail address ending in @gmail.com.");
+            email.reportValidity();
+            email.setCustomValidity("");
+            e.preventDefault();
+            return;
+        }
+
+        email.setCustomValidity("");
 
         const pwd = password.value;
 
